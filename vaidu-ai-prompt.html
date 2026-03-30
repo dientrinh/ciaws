@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Prompt Forge</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0f;
+    --surface: #16161a;
+    --surface2: #1e1e24;
+    --border: #2a2a35;
+    --accent: #e8ff47;
+    --accent2: #47ffe8;
+    --accent3: #ff6b47;
+    --text: #e8e8f0;
+    --text-muted: #6b6b80;
+    --radius: 6px;
+    --font-mono: 'Space Mono', monospace;
+    --font-head: 'Syne', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 300px 1fr 340px;
+    grid-template-rows: 56px 1fr;
+    grid-template-areas:
+      "header header header"
+      "sidebar main preview";
+  }
+
+  /* HEADER */
+  header {
+    grid-area: header;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 16px;
+    background: var(--bg);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo {
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: -0.5px;
+    color: var(--accent);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .logo-icon {
+    width: 28px; height: 28px;
+    background: var(--accent);
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    color: #000;
+    font-size: 14px;
+    font-weight: 800;
+  }
+  .header-tag {
+    font-size: 10px;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    padding: 2px 8px;
+    border-radius: 20px;
+    letter-spacing: 0.05em;
+  }
+
+  /* SIDEBAR */
+  aside {
+    grid-area: sidebar;
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 20px 0;
+    background: var(--surface);
+  }
+  .sidebar-label {
+    font-family: var(--font-head);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 0 20px 10px;
+  }
+  .template-btn {
+    display: block; width: 100%;
+    padding: 10px 20px;
+    background: none; border: none;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.15s;
+    border-left: 2px solid transparent;
+    position: relative;
+  }
+  .template-btn:hover { color: var(--text); background: var(--surface2); }
+  .template-btn.active {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    background: rgba(232,255,71,0.05);
+  }
+  .template-btn .t-name {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 2px;
+    color: inherit;
+  }
+  .template-btn .t-desc {
+    font-size: 10px;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+  .template-btn.active .t-desc { color: rgba(232,255,71,0.5); }
+
+  /* MAIN */
+  main {
+    grid-area: main;
+    overflow-y: auto;
+    padding: 28px;
+    background: var(--bg);
+  }
+  .section-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .section-card:focus-within { border-color: var(--accent2); }
+  .section-header {
+    padding: 12px 16px;
+    display: flex; align-items: center; gap-8px; gap: 8px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .section-num {
+    width: 20px; height: 20px;
+    background: var(--border);
+    border-radius: 3px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+  .section-title {
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 13px;
+    flex: 1;
+    color: var(--text);
+  }
+  .section-required {
+    font-size: 9px;
+    color: var(--accent3);
+    border: 1px solid var(--accent3);
+    padding: 1px 6px; border-radius: 20px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .section-body { padding: 14px 16px; }
+  .section-hint { font-size: 11px; color: var(--text-muted); margin-bottom: 10px; line-height: 1.5; }
+
+  /* CHIPS */
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .chip {
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 11px;
+    color: var(--text-muted);
+    cursor: pointer;
+    background: var(--surface2);
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .chip:hover { border-color: var(--accent2); color: var(--accent2); }
+  .chip.selected {
+    border-color: var(--accent2);
+    background: rgba(71,255,232,0.1);
+    color: var(--accent2);
+  }
+
+  /* SELECTED TAGS */
+  .selected-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .tag {
+    display: flex; align-items: center; gap: 4px;
+    padding: 3px 8px 3px 10px;
+    background: rgba(71,255,232,0.12);
+    border: 1px solid var(--accent2);
+    border-radius: 20px;
+    font-size: 11px;
+    color: var(--accent2);
+  }
+  .tag-remove {
+    background: none; border: none; color: var(--accent2);
+    cursor: pointer; font-size: 14px; line-height: 1;
+    padding: 0; opacity: 0.6;
+  }
+  .tag-remove:hover { opacity: 1; }
+
+  /* TEXT INPUT */
+  .free-input-row { display: flex; gap: 6px; margin-top: 4px; }
+  .free-input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 7px 10px;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .free-input:focus { border-color: var(--accent2); }
+  .free-input::placeholder { color: var(--text-muted); }
+  .add-btn {
+    padding: 7px 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .add-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  textarea.section-textarea {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    outline: none;
+    resize: vertical;
+    min-height: 80px;
+    line-height: 1.6;
+    transition: border-color 0.15s;
+  }
+  textarea.section-textarea:focus { border-color: var(--accent2); }
+  textarea.section-textarea::placeholder { color: var(--text-muted); }
+
+  /* PREVIEW */
+  .preview-panel {
+    grid-area: preview;
+    border-left: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    background: var(--surface);
+    position: sticky; top: 56px; height: calc(100vh - 56px);
+  }
+  .preview-header {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .preview-title {
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--text);
+    letter-spacing: 0.05em;
+  }
+  .copy-btn {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 14px;
+    background: var(--accent);
+    border: none;
+    border-radius: var(--radius);
+    color: #000;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.03em;
+  }
+  .copy-btn:hover { background: #f5ff80; transform: translateY(-1px); }
+  .copy-btn.copied { background: var(--accent2); }
+  .preview-body {
+    flex: 1; overflow-y: auto;
+    padding: 16px;
+  }
+  #preview-output {
+    white-space: pre-wrap;
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--text);
+    word-break: break-word;
+  }
+  #preview-output .p-section-title {
+    color: var(--accent);
+    font-weight: 700;
+    display: block;
+    margin-top: 12px;
+    margin-bottom: 2px;
+  }
+  #preview-output .p-section-title:first-child { margin-top: 0; }
+  .preview-empty {
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.6;
+    text-align: center;
+    padding: 40px 16px;
+  }
+  .char-count {
+    padding: 8px 16px;
+    font-size: 10px;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  /* Template title area */
+  .main-header {
+    display: flex; align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .template-name {
+    font-family: var(--font-head);
+    font-weight: 800;
+    font-size: 22px;
+    color: var(--text);
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+  }
+  .template-desc-text {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    line-height: 1.5;
+  }
+  .clear-btn {
+    padding: 7px 14px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    margin-top: 4px;
+  }
+  .clear-btn:hover { border-color: var(--accent3); color: var(--accent3); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+  .divider { height: 1px; background: var(--border); margin: 8px 0 16px; }
+
+  /* EXAMPLE PROMPT CARD */
+  .example-card {
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+  .example-card-header {
+    padding: 10px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(232,255,71,0.04);
+    border-bottom: 1px dashed var(--border);
+    cursor: pointer;
+    user-select: none;
+  }
+  .example-card-header:hover { background: rgba(232,255,71,0.07); }
+  .example-label {
+    font-family: var(--font-head);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .example-label::before {
+    content: '✦';
+    font-size: 10px;
+  }
+  .example-toggle {
+    font-size: 11px;
+    color: var(--text-muted);
+    transition: transform 0.2s;
+  }
+  .example-toggle.open { transform: rotate(180deg); }
+  .example-body {
+    padding: 14px 16px;
+    display: none;
+  }
+  .example-body.open { display: block; }
+  .example-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    line-height: 1.5;
+    font-style: italic;
+  }
+  .example-text {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    font-size: 11px;
+    line-height: 1.75;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+    position: relative;
+  }
+  .example-section-label {
+    color: var(--accent);
+    font-weight: 700;
+    display: block;
+    margin-top: 10px;
+    margin-bottom: 1px;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .example-section-label:first-child { margin-top: 0; }
+  .example-section-value {
+    color: var(--text-muted);
+    display: block;
+    margin-bottom: 2px;
+  }
+  .use-example-btn {
+    margin-top: 12px;
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 14px;
+    background: none;
+    border: 1px solid var(--accent);
+    border-radius: var(--radius);
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .use-example-btn:hover { background: rgba(232,255,71,0.1); }
+
+  @media (max-width: 900px) {
+    body {
+      grid-template-columns: 1fr;
+      grid-template-rows: 56px auto 1fr auto;
+      grid-template-areas: "header" "sidebar" "main" "preview";
+    }
+    aside { max-height: 200px; }
+    .preview-panel { position: relative; height: auto; min-height: 300px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">⚡</div>
+    AI Prompt Forge
+  </div>
+  <span class="header-tag">DAILY WRITER</span>
+</header>
+
+<aside id="sidebar"></aside>
+<main id="main-content"></main>
+<div class="preview-panel">
+  <div class="preview-header">
+    <span class="preview-title">PROMPT OUTPUT</span>
+    <button class="copy-btn" id="copy-btn" onclick="copyPrompt()">⎘ COPY</button>
+  </div>
+  <div class="preview-body">
+    <div id="preview-output"><div class="preview-empty">← Select a template and fill in sections to generate your prompt</div></div>
+  </div>
+  <div class="char-count">
+    <span id="char-count">0 chars</span>
+    <span id="word-count">0 words</span>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA — Add more templates and sections here easily
+// ============================================================
+const TEMPLATES = [
+  {
+    id: "task",
+    name: "Task / Instruction",
+    desc: "Direct task with clear expected output",
+    example: {
+      desc: "A direct coding task with role, constraints, and format specified.",
+      fields: [
+        { label: "Act As / Role", value: "Senior Software Engineer" },
+        { label: "Task Description", value: "Write a JavaScript function that debounces an async API call. It should cancel the previous pending request if a new one is triggered within the delay window." },
+        { label: "Context / Background", value: "Production system, Customer-facing" },
+        { label: "Constraints", value: "No external libraries, TypeScript only, Well-commented" },
+        { label: "Output Format", value: "Code with explanation" },
+        { label: "Tone", value: "Concise" }
+      ]
+    },
+    sections: [
+      {
+        id: "role",
+        title: "Act As / Role",
+        hint: "Define the AI persona or expertise",
+        type: "chips+free",
+        required: true,
+        multi: false,
+        options: ["Senior Software Engineer","UX Designer","Data Scientist","Product Manager","Technical Writer","Marketing Strategist","Business Analyst","Legal Expert","Financial Advisor","Creative Director"]
+      },
+      {
+        id: "task",
+        title: "Task Description",
+        hint: "What should the AI do? Be specific.",
+        type: "textarea",
+        required: true,
+        placeholder: "e.g. Write a function that validates email addresses using regex..."
+      },
+      {
+        id: "context",
+        title: "Context / Background",
+        hint: "Relevant background information",
+        type: "chips+free",
+        multi: true,
+        options: ["For a startup","For enterprise","Internal tool","Customer-facing","MVP stage","Production system","Greenfield project","Legacy codebase"]
+      },
+      {
+        id: "constraints",
+        title: "Constraints",
+        hint: "Rules, limitations, or requirements to follow",
+        type: "chips+free",
+        multi: true,
+        options: ["No external libraries","Must be performant","Readable code","Well-commented","TypeScript only","Python 3.10+","Functional style","OOP style","Under 50 lines"]
+      },
+      {
+        id: "output_format",
+        title: "Output Format",
+        hint: "How should the response be structured?",
+        type: "chips+free",
+        multi: false,
+        options: ["Code only","Code with explanation","Step-by-step","Bullet points","Markdown","JSON","Plain text","Table format"]
+      },
+      {
+        id: "tone",
+        title: "Tone",
+        hint: "Communication style",
+        type: "chips+free",
+        multi: false,
+        options: ["Professional","Concise","Detailed","Casual","Technical","Beginner-friendly"]
+      }
+    ]
+  },
+  {
+    id: "chain_thought",
+    name: "Chain of Thought",
+    desc: "Step-by-step reasoning for complex problems",
+    example: {
+      desc: "Reasoning through an architectural decision with evidence and a ranked conclusion.",
+      fields: [
+        { label: "Problem Statement", value: "Should we migrate our monolithic Node.js app to microservices? We have 3 engineers, 50k MAU, and a 6-month runway." },
+        { label: "Domain / Field", value: "Software Architecture" },
+        { label: "Reasoning Approach", value: "Think step by step, Consider all angles, List pros and cons, Consider edge cases" },
+        { label: "Available Evidence / Data", value: "Current deploy time: 45 min. Team size: 3 devs. Main pain: one slow billing module blocks all releases." },
+        { label: "Conclusion Format", value: "Multiple options ranked" }
+      ]
+    },
+    sections: [
+      {
+        id: "problem",
+        title: "Problem Statement",
+        hint: "Describe the problem clearly",
+        type: "textarea",
+        required: true,
+        placeholder: "Describe the complex problem you need reasoned through..."
+      },
+      {
+        id: "domain",
+        title: "Domain / Field",
+        hint: "What area does this problem belong to?",
+        type: "chips+free",
+        multi: false,
+        options: ["Software Architecture","Data Analysis","Business Strategy","Mathematics","Science","Law","Medicine","Economics","Philosophy","Design"]
+      },
+      {
+        id: "approach",
+        title: "Reasoning Approach",
+        hint: "How should AI think through this?",
+        type: "chips+free",
+        multi: true,
+        options: ["Think step by step","Consider all angles","List pros and cons","Show your work","Challenge assumptions","Use analogies","Break into sub-problems","Consider edge cases"]
+      },
+      {
+        id: "evidence",
+        title: "Available Evidence / Data",
+        hint: "Any facts or data to reason from",
+        type: "textarea",
+        placeholder: "Provide any data, facts, or existing information..."
+      },
+      {
+        id: "conclusion_format",
+        title: "Conclusion Format",
+        hint: "How should the final answer be presented?",
+        type: "chips+free",
+        multi: false,
+        options: ["Final recommendation","Multiple options ranked","Yes/No with reasoning","Action plan","Summary of findings","Decision matrix"]
+      }
+    ]
+  },
+  {
+    id: "few_shot",
+    name: "Few-Shot Examples",
+    desc: "Teach by example, then apply to new case",
+    example: {
+      desc: "Teaching a commit message style through two examples, then applying it.",
+      fields: [
+        { label: "Task Description", value: "Convert raw git diff descriptions into conventional commit messages following the format: type(scope): short description." },
+        { label: "Examples (Input → Output)", value: "Example 1:\nInput: Added a retry mechanism when the payment API times out\nOutput: feat(payments): add retry logic on API timeout\n\nExample 2:\nInput: Fixed a crash that happened when the user list was empty\nOutput: fix(users): handle empty user list crash" },
+        { label: "New Input to Process", value: "Input: Removed the old config file and updated the env variable names to match the new schema" },
+        { label: "Style Notes", value: "Match tone exactly, Same structure" }
+      ]
+    },
+    sections: [
+      {
+        id: "task_desc",
+        title: "Task Description",
+        hint: "What pattern should the AI learn?",
+        type: "textarea",
+        required: true,
+        placeholder: "Describe the transformation or task pattern..."
+      },
+      {
+        id: "examples",
+        title: "Examples (Input → Output)",
+        hint: "Provide 2-3 examples of the pattern",
+        type: "textarea",
+        required: true,
+        placeholder: "Example 1:\nInput: ...\nOutput: ...\n\nExample 2:\nInput: ...\nOutput: ..."
+      },
+      {
+        id: "new_input",
+        title: "New Input to Process",
+        hint: "The actual input you want processed",
+        type: "textarea",
+        required: true,
+        placeholder: "Input: ..."
+      },
+      {
+        id: "style_notes",
+        title: "Style Notes",
+        hint: "Any additional consistency requirements",
+        type: "chips+free",
+        multi: true,
+        options: ["Match tone exactly","Same length","Same structure","Formal register","Same vocabulary level","Keep formatting"]
+      }
+    ]
+  },
+  {
+    id: "creative",
+    name: "Creative Writing",
+    desc: "Stories, copy, content generation",
+    example: {
+      desc: "A LinkedIn post for a developer tool targeting startup founders.",
+      fields: [
+        { label: "Content Type", value: "LinkedIn post" },
+        { label: "Topic / Subject", value: "How we cut our CI/CD pipeline from 40 minutes to 4 minutes using build caching — and what we learned along the way." },
+        { label: "Target Audience", value: "Startup founders, Developers" },
+        { label: "Tone & Voice", value: "Storytelling, Bold, Conversational" },
+        { label: "Length", value: "300-600 words" },
+        { label: "Keywords / Must Include", value: "CI/CD, build cache, developer velocity" }
+      ]
+    },
+    sections: [
+      {
+        id: "content_type",
+        title: "Content Type",
+        hint: "What are you creating?",
+        type: "chips+free",
+        required: true,
+        multi: false,
+        options: ["Blog post","Short story","Product description","Ad copy","Email newsletter","Social media post","Script","Landing page copy","Case study","LinkedIn post"]
+      },
+      {
+        id: "topic",
+        title: "Topic / Subject",
+        hint: "What is it about?",
+        type: "textarea",
+        required: true,
+        placeholder: "Describe the topic, subject, or main idea..."
+      },
+      {
+        id: "audience",
+        title: "Target Audience",
+        hint: "Who will read this?",
+        type: "chips+free",
+        multi: true,
+        options: ["Developers","Non-technical users","C-suite executives","Small business owners","Millennials","Gen Z","Enterprise buyers","General public","Students","Startup founders"]
+      },
+      {
+        id: "tone_creative",
+        title: "Tone & Voice",
+        hint: "How should it feel?",
+        type: "chips+free",
+        multi: true,
+        options: ["Witty","Authoritative","Empathetic","Inspiring","Urgent","Playful","Minimalist","Bold","Conversational","Storytelling"]
+      },
+      {
+        id: "length",
+        title: "Length",
+        hint: "Approximate word count or format",
+        type: "chips+free",
+        multi: false,
+        options: ["<100 words","100-300 words","300-600 words","600-1000 words","1000+ words","Twitter thread","5 bullet points","1 paragraph"]
+      },
+      {
+        id: "keywords",
+        title: "Keywords / Must Include",
+        hint: "Terms or phrases that must appear",
+        type: "chips+free",
+        multi: true,
+        options: []
+      }
+    ]
+  },
+  {
+    id: "code_review",
+    name: "Code Review",
+    desc: "Analyze, critique, and improve code",
+    example: {
+      desc: "Security and performance review of a Node.js authentication handler.",
+      fields: [
+        { label: "Code to Review", value: "app.post('/login', async (req, res) => {\n  const user = await db.query(`SELECT * FROM users WHERE email='${req.body.email}'`);\n  if (user && user.password === req.body.password) {\n    res.json({ token: jwt.sign(user, 'secret') });\n  } else {\n    res.status(401).send('Unauthorized');\n  }\n});" },
+        { label: "Language / Framework", value: "JavaScript, Node.js" },
+        { label: "Review Focus", value: "Security vulnerabilities, Best practices, Error handling" },
+        { label: "Feedback Style", value: "Severity-ranked" }
+      ]
+    },
+    sections: [
+      {
+        id: "code",
+        title: "Code to Review",
+        hint: "Paste the code you want reviewed",
+        type: "textarea",
+        required: true,
+        placeholder: "// Paste your code here..."
+      },
+      {
+        id: "lang",
+        title: "Language / Framework",
+        hint: "Programming language or tech stack",
+        type: "chips+free",
+        multi: true,
+        options: ["JavaScript","TypeScript","Python","Go","Rust","Java","React","Vue","Node.js","Django","FastAPI","PostgreSQL"]
+      },
+      {
+        id: "review_focus",
+        title: "Review Focus",
+        hint: "What aspects to concentrate on",
+        type: "chips+free",
+        multi: true,
+        options: ["Security vulnerabilities","Performance","Readability","Best practices","Error handling","Type safety","Test coverage","Scalability","Memory usage","Code duplication"]
+      },
+      {
+        id: "output_style",
+        title: "Feedback Style",
+        hint: "How to deliver the review",
+        type: "chips+free",
+        multi: false,
+        options: ["Inline comments","Summary report","Rewritten code","Numbered issues","Severity-ranked","Gentle suggestions","Direct critique"]
+      }
+    ]
+  },
+  {
+    id: "summarize",
+    name: "Summarization",
+    desc: "Condense and extract key insights",
+    example: {
+      desc: "Extracting action items and risks from a long meeting transcript.",
+      fields: [
+        { label: "Content to Summarize", value: "[Paste a lengthy meeting transcript or article here — e.g., a 2,000-word Q3 planning meeting discussion]" },
+        { label: "Summary Type", value: "Action items" },
+        { label: "Extract Specifically", value: "Decisions made, Next steps, Risks, Dates & deadlines, People mentioned" },
+        { label: "Length", value: "1 page" }
+      ]
+    },
+    sections: [
+      {
+        id: "content",
+        title: "Content to Summarize",
+        hint: "Paste the text, article, or document",
+        type: "textarea",
+        required: true,
+        placeholder: "Paste content here..."
+      },
+      {
+        id: "summary_type",
+        title: "Summary Type",
+        hint: "What kind of summary?",
+        type: "chips+free",
+        multi: false,
+        options: ["Executive summary","TL;DR (1 paragraph)","Bullet point list","Key takeaways","Action items","BLUF (Bottom Line Up Front)","ELI5 (Simple explanation)","Technical summary"]
+      },
+      {
+        id: "extract",
+        title: "Extract Specifically",
+        hint: "Any specific elements to highlight",
+        type: "chips+free",
+        multi: true,
+        options: ["Main argument","Data & statistics","Decisions made","Next steps","Risks","Opportunities","People mentioned","Dates & deadlines","Quotes"]
+      },
+      {
+        id: "length_s",
+        title: "Length",
+        hint: "How long should the summary be?",
+        type: "chips+free",
+        multi: false,
+        options: ["1 sentence","3-5 sentences","Half a page","1 page","Proportional to original"]
+      }
+    ]
+  },
+  {
+    id: "debug",
+    name: "Debug & Fix",
+    desc: "Find and resolve bugs or errors",
+    example: {
+      desc: "Debugging a React hook that causes an infinite render loop.",
+      fields: [
+        { label: "Error / Problem Description", value: "TypeError: Maximum update depth exceeded. This happens when a component calls setState inside useEffect without proper dependencies, causing an infinite loop." },
+        { label: "Problematic Code", value: "useEffect(() => {\n  setCount(count + 1);\n}, [count]);" },
+        { label: "Expected Behavior", value: "The effect should run only once on mount to initialize the counter, not on every count change." },
+        { label: "Environment", value: "Browser (Chrome), Node.js 20" },
+        { label: "Fix Approach", value: "Explain + fixed code" }
+      ]
+    },
+    sections: [
+      {
+        id: "error",
+        title: "Error / Problem Description",
+        hint: "Describe the bug or paste the error message",
+        type: "textarea",
+        required: true,
+        placeholder: "Error: TypeError: Cannot read property 'x' of undefined..."
+      },
+      {
+        id: "buggy_code",
+        title: "Problematic Code",
+        hint: "The code that is causing issues",
+        type: "textarea",
+        placeholder: "// Paste the problematic code here..."
+      },
+      {
+        id: "expected",
+        title: "Expected Behavior",
+        hint: "What should the code do?",
+        type: "textarea",
+        placeholder: "Describe what the correct behavior should be..."
+      },
+      {
+        id: "env",
+        title: "Environment",
+        hint: "Runtime, version, OS, etc.",
+        type: "chips+free",
+        multi: true,
+        options: ["Node.js 20","Python 3.11","Browser (Chrome)","Docker","macOS","Linux","Windows","CI/CD pipeline","Production server"]
+      },
+      {
+        id: "fix_approach",
+        title: "Fix Approach",
+        hint: "How should the fix be delivered?",
+        type: "chips+free",
+        multi: false,
+        options: ["Explain the cause","Fixed code only","Explain + fixed code","Multiple approaches","Minimal change","Refactor if needed"]
+      }
+    ]
+  },
+  {
+    id: "brainstorm",
+    name: "Brainstorm / Ideation",
+    desc: "Generate ideas and creative solutions",
+    example: {
+      desc: "Generating quick-win onboarding ideas for a B2B SaaS with a solo dev.",
+      fields: [
+        { label: "Challenge / Question", value: "How might we reduce time-to-value for new users in our project management SaaS? Most users churn in the first week without completing setup." },
+        { label: "Business Context", value: "B2B SaaS, Startup" },
+        { label: "Idea Style", value: "Practical & quick, User-centric, Quick wins" },
+        { label: "Quantity", value: "10 ideas" },
+        { label: "Constraints", value: "Solo developer, 1-week timeline, Existing tech stack" }
+      ]
+    },
+    sections: [
+      {
+        id: "challenge",
+        title: "Challenge / Question",
+        hint: "What do you want ideas for?",
+        type: "textarea",
+        required: true,
+        placeholder: "e.g. How might we improve user onboarding for our SaaS product?"
+      },
+      {
+        id: "biz_context",
+        title: "Business Context",
+        hint: "Relevant background",
+        type: "chips+free",
+        multi: true,
+        options: ["B2B SaaS","E-commerce","Mobile app","Internal tool","Startup","Enterprise","Non-profit","Side project","Agency","Platform"]
+      },
+      {
+        id: "idea_style",
+        title: "Idea Style",
+        hint: "What type of ideas?",
+        type: "chips+free",
+        multi: true,
+        options: ["Wild & creative","Practical & quick","Data-driven","User-centric","Low cost","High impact","Controversial","Safe bets","Long-term","Quick wins"]
+      },
+      {
+        id: "quantity",
+        title: "Quantity",
+        hint: "How many ideas?",
+        type: "chips+free",
+        multi: false,
+        options: ["5 ideas","10 ideas","20 ideas","3 deep ideas","Top 3 with detail","Exhaustive list"]
+      },
+      {
+        id: "constraints_b",
+        title: "Constraints",
+        hint: "Limitations to respect",
+        type: "chips+free",
+        multi: true,
+        options: ["No code required","Budget < $1k","1-week timeline","Solo developer","No designers","Must scale","Existing tech stack","Regulatory compliance"]
+      }
+    ]
+  },
+  {
+    id: "persona",
+    name: "Persona / Roleplay",
+    desc: "Set up a specific AI persona or character",
+    example: {
+      desc: "A harsh code reviewer persona to pressure-test a system design proposal.",
+      fields: [
+        { label: "Persona / Character", value: "Strict code reviewer" },
+        { label: "Key Traits", value: "Direct & blunt, Skeptical, Data-driven, Challenging" },
+        { label: "Scenario / Situation", value: "I'm about to present my design for a real-time notification system using WebSockets and Redis pub/sub. I need you to find every flaw, scalability risk, and naive assumption before I pitch this to the team." },
+        { label: "Rules for Persona", value: "Challenge every assumption, Push back on ideas, Give examples always, Be concise" }
+      ]
+    },
+    sections: [
+      {
+        id: "persona_name",
+        title: "Persona / Character",
+        hint: "Who should the AI be?",
+        type: "chips+free",
+        required: true,
+        multi: false,
+        options: ["Socratic teacher","Rubber duck debugger","Devil's advocate","Strict code reviewer","Friendly mentor","Harsh critic","Startup advisor","Stoic philosopher","Tech lead","Product visionary"]
+      },
+      {
+        id: "persona_traits",
+        title: "Key Traits",
+        hint: "Personality characteristics",
+        type: "chips+free",
+        multi: true,
+        options: ["Direct & blunt","Patient & encouraging","Skeptical","Enthusiastic","Data-driven","Creative","Conservative","Challenging","Empathetic","Analytical"]
+      },
+      {
+        id: "scenario",
+        title: "Scenario / Situation",
+        hint: "Context for the interaction",
+        type: "textarea",
+        required: true,
+        placeholder: "Describe the situation or what you want to discuss..."
+      },
+      {
+        id: "rules",
+        title: "Rules for Persona",
+        hint: "What must the persona always / never do?",
+        type: "chips+free",
+        multi: true,
+        options: ["Never break character","Always ask a question back","Challenge every assumption","Only answer in questions","Give examples always","Use analogies","Be concise","Cite sources","Push back on ideas"]
+      }
+    ]
+  }
+];
+
+// ============================================================
+// STATE
+// ============================================================
+let currentTemplate = TEMPLATES[0];
+let sectionState = {}; // { sectionId: { tags: [], freeText: '', textarea: '' } }
+
+function initState(template) {
+  sectionState = {};
+  template.sections.forEach(s => {
+    sectionState[s.id] = { tags: [], textarea: '' };
+  });
+}
+
+// ============================================================
+// RENDER SIDEBAR
+// ============================================================
+function renderSidebar() {
+  const el = document.getElementById('sidebar');
+  el.innerHTML = `<div class="sidebar-label">Templates</div>` +
+    TEMPLATES.map(t => `
+      <button class="template-btn ${t.id === currentTemplate.id ? 'active' : ''}" onclick="selectTemplate('${t.id}')">
+        <span class="t-name">${t.name}</span>
+        <span class="t-desc">${t.desc}</span>
+      </button>
+    `).join('') +
+    `<div style="height:20px"></div>`;
+}
+
+// ============================================================
+// RENDER MAIN
+// ============================================================
+function renderMain() {
+  const t = currentTemplate;
+  const el = document.getElementById('main-content');
+  el.innerHTML = `
+    <div class="main-header">
+      <div>
+        <div class="template-name">${t.name}</div>
+        <div class="template-desc-text">${t.desc}</div>
+      </div>
+      <button class="clear-btn" onclick="clearAll()">↺ Clear All</button>
+    </div>
+    ${t.sections.map((s, i) => renderSection(s, i)).join('')}
+    ${renderExampleCard(t)}
+  `;
+}
+
+function renderSection(s, i) {
+  const state = sectionState[s.id];
+  const tags = state.tags;
+
+  let body = '';
+
+  if (s.type === 'textarea') {
+    body = `
+      <div class="section-hint">${s.hint}</div>
+      <textarea class="section-textarea" 
+        placeholder="${s.placeholder || ''}" 
+        oninput="updateTextarea('${s.id}', this.value)"
+        rows="4">${state.textarea}</textarea>
+    `;
+  } else if (s.type === 'chips+free') {
+    // Selected tags
+    const tagHTML = tags.length > 0 ? `
+      <div class="selected-tags" id="tags-${s.id}">
+        ${tags.map((tag, ti) => `
+          <span class="tag">${tag}<button class="tag-remove" onclick="removeTag('${s.id}', ${ti})">×</button></span>
+        `).join('')}
+      </div>` : `<div id="tags-${s.id}"></div>`;
+
+    // Chips
+    const chipsHTML = s.options.length > 0 ? `
+      <div class="chips" id="chips-${s.id}">
+        ${s.options.map(opt => `
+          <span class="chip ${tags.includes(opt) ? 'selected' : ''}" 
+            onclick="toggleChip('${s.id}', '${opt.replace(/'/g,"\\'")}', ${!!s.multi})">
+            ${opt}
+          </span>
+        `).join('')}
+      </div>` : '';
+
+    body = `
+      <div class="section-hint">${s.hint}</div>
+      ${tagHTML}
+      ${chipsHTML}
+      <div class="free-input-row">
+        <input class="free-input" type="text" placeholder="Or type custom value..." 
+          id="input-${s.id}"
+          onkeydown="handleFreeInput(event, '${s.id}', ${!!s.multi})">
+        <button class="add-btn" onclick="addFreeInput('${s.id}', ${!!s.multi})">+ Add</button>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="section-card" id="card-${s.id}">
+      <div class="section-header">
+        <div class="section-num">${i + 1}</div>
+        &nbsp;
+        <div class="section-title">${s.title}</div>
+        ${s.required ? '<span class="section-required">required</span>' : ''}
+      </div>
+      <div class="section-body">${body}</div>
+    </div>
+  `;
+}
+
+function renderExampleCard(t) {
+  if (!t.example) return '';
+  const ex = t.example;
+  const fieldsHTML = ex.fields.map(f => `
+    <span class="example-section-label">${f.label}</span>
+    <span class="example-section-value">${f.value.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>
+  `).join('');
+  return `
+    <div class="example-card" id="example-card">
+      <div class="example-card-header" onclick="toggleExample()">
+        <span class="example-label">Example Prompt</span>
+        <span class="example-toggle" id="example-toggle">▾</span>
+      </div>
+      <div class="example-body" id="example-body">
+        <div class="example-desc">${ex.desc}</div>
+        <div class="example-text">${fieldsHTML}</div>
+        <button class="use-example-btn" onclick="useExample()">↳ Use this example</button>
+      </div>
+    </div>
+  `;
+}
+
+function toggleExample() {
+  const body = document.getElementById('example-body');
+  const toggle = document.getElementById('example-toggle');
+  if (!body) return;
+  body.classList.toggle('open');
+  toggle.classList.toggle('open');
+}
+
+function useExample() {
+  const t = currentTemplate;
+  if (!t.example) return;
+  initState(t);
+  t.example.fields.forEach(f => {
+    // Match field label to section title
+    const section = t.sections.find(s => s.title === f.label);
+    if (!section) return;
+    const state = sectionState[section.id];
+    if (section.type === 'textarea') {
+      state.textarea = f.value;
+    } else {
+      // Split comma-separated values into tags
+      const vals = f.value.split(',').map(v => v.trim()).filter(Boolean);
+      state.tags = vals;
+    }
+  });
+  renderMain();
+  updatePreview();
+  // Auto-close example card after using
+  const body = document.getElementById('example-body');
+  const toggle = document.getElementById('example-toggle');
+  if (body) { body.classList.remove('open'); toggle.classList.remove('open'); }
+}
+
+
+function selectTemplate(id) {
+  currentTemplate = TEMPLATES.find(t => t.id === id);
+  initState(currentTemplate);
+  renderSidebar();
+  renderMain();
+  updatePreview();
+}
+
+function clearAll() {
+  initState(currentTemplate);
+  renderMain();
+  updatePreview();
+}
+
+function toggleChip(sectionId, value, multi) {
+  const state = sectionState[sectionId];
+  const idx = state.tags.indexOf(value);
+  if (idx > -1) {
+    state.tags.splice(idx, 1);
+  } else {
+    if (!multi) state.tags = [value];
+    else state.tags.push(value);
+  }
+  refreshSection(sectionId);
+  updatePreview();
+}
+
+function removeTag(sectionId, tagIndex) {
+  sectionState[sectionId].tags.splice(tagIndex, 1);
+  refreshSection(sectionId);
+  updatePreview();
+}
+
+function handleFreeInput(event, sectionId, multi) {
+  if (event.key === 'Enter') addFreeInput(sectionId, multi);
+}
+
+function addFreeInput(sectionId, multi) {
+  const input = document.getElementById('input-' + sectionId);
+  const val = input.value.trim();
+  if (!val) return;
+  const state = sectionState[sectionId];
+  if (!multi) state.tags = [val];
+  else if (!state.tags.includes(val)) state.tags.push(val);
+  input.value = '';
+  refreshSection(sectionId);
+  updatePreview();
+}
+
+function updateTextarea(sectionId, value) {
+  sectionState[sectionId].textarea = value;
+  updatePreview();
+}
+
+function refreshSection(sectionId) {
+  const s = currentTemplate.sections.find(s => s.id === sectionId);
+  const i = currentTemplate.sections.indexOf(s);
+  const card = document.getElementById('card-' + sectionId);
+  const newCard = document.createElement('div');
+  newCard.innerHTML = renderSection(s, i);
+  card.replaceWith(newCard.firstElementChild);
+}
+
+// ============================================================
+// PREVIEW GENERATION
+// ============================================================
+function buildPromptText() {
+  const t = currentTemplate;
+  let parts = [];
+
+  t.sections.forEach(s => {
+    const state = sectionState[s.id];
+    let value = '';
+    if (s.type === 'textarea') value = state.textarea.trim();
+    else value = state.tags.join(', ');
+
+    if (!value) return;
+
+    parts.push({ title: s.title, value });
+  });
+
+  if (!parts.length) return '';
+
+  return parts.map(p => `## ${p.title}\n${p.value}`).join('\n\n');
+}
+
+function updatePreview() {
+  const text = buildPromptText();
+  const out = document.getElementById('preview-output');
+
+  if (!text) {
+    out.innerHTML = '<div class="preview-empty">← Fill in sections to generate your prompt</div>';
+    document.getElementById('char-count').textContent = '0 chars';
+    document.getElementById('word-count').textContent = '0 words';
+    return;
+  }
+
+  // Render with highlighted section titles
+  const htmlText = text.replace(/^## (.+)$/gm, (_, title) =>
+    `<span class="p-section-title">▸ ${title}</span>`
+  );
+  out.innerHTML = htmlText;
+
+  const chars = text.length;
+  const words = text.trim().split(/\s+/).filter(Boolean).length;
+  document.getElementById('char-count').textContent = chars.toLocaleString() + ' chars';
+  document.getElementById('word-count').textContent = words.toLocaleString() + ' words';
+}
+
+// ============================================================
+// COPY
+// ============================================================
+function copyPrompt() {
+  const text = buildPromptText();
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = '✓ COPIED!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = '⎘ COPY';
+      btn.classList.remove('copied');
+    }, 2000);
+  });
+}
+
+// ============================================================
+// INIT
+// ============================================================
+initState(currentTemplate);
+renderSidebar();
+renderMain();
+updatePreview();
+</script>
+</body>
+</html>
