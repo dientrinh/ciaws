@@ -1,0 +1,16 @@
+════════════════════════════════════════════════════════════════════════════
+ Pipeline Run  : 20260401_133004
+ Database      : postgres on localhost:5432
+ Schema        : cicd
+ Log file      : /home/dientrinh/database-cicd/logs/cicd_20260401_133004.log
+════════════════════════════════════════════════════════════════════════════
+PHASE                | FILE                           | STATUS   | TIMESTAMP
+────────────────────────────────────────────────────────────────────────────
+pre-validation       | (no sql files)                 | SKIPPED  | 2026-04-01 13:30:04
+backup               | (no sql files)                 | SKIPPED  | 2026-04-01 13:30:04
+change               | (no sql files)                 | SKIPPED  | 2026-04-01 13:30:04
+post-validation      | (no sql files)                 | SKIPPED  | 2026-04-01 13:30:04
+────────────────────────────────────────────────────────────────────────────
+ Overall result : ALL PHASES PASSED ✓
+ Completed at   : 2026-04-01 13:30:04
+════════════════════════════════════════════════════════════════════════════
