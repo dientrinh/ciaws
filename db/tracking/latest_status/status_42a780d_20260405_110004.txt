@@ -1,0 +1,16 @@
+════════════════════════════════════════════════════════════════════════════
+ Pipeline Run  : 20260405_110004
+ Database      : postgres on localhost:5432
+ Schema        : cicd
+ Log file      : /home/dientrinh/database-cicd/logs/cicd_42a780d_20260405_110004.log
+════════════════════════════════════════════════════════════════════════════
+PHASE                | FILE                           | STATUS   | TIMESTAMP
+────────────────────────────────────────────────────────────────────────────
+pre-validation       | verify.sql                     | FAILED   | 2026-04-05 11:00:04
+backup               | backup.sql                     | SKIPPED  | 2026-04-05 11:00:04
+change               | insert.sql                     | SKIPPED  | 2026-04-05 11:00:04
+post-validation      | check_post_insert.sql          | SKIPPED  | 2026-04-05 11:00:04
+────────────────────────────────────────────────────────────────────────────
+ Overall result : FAILED — halted at phase: pre-validation ✗
+ Completed at   : 2026-04-05 11:00:04
+════════════════════════════════════════════════════════════════════════════
