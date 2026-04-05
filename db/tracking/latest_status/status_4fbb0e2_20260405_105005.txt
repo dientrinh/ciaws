@@ -1,0 +1,16 @@
+════════════════════════════════════════════════════════════════════════════
+ Pipeline Run  : 20260405_105005
+ Database      : postgres on localhost:5432
+ Schema        : cicd
+ Log file      : /home/dientrinh/database-cicd/logs/cicd_4fbb0e2_20260405_105005.log
+════════════════════════════════════════════════════════════════════════════
+PHASE                | FILE                           | STATUS   | TIMESTAMP
+────────────────────────────────────────────────────────────────────────────
+pre-validation       | verify.sql                     | SUCCESS  | 2026-04-05 10:50:05
+backup               | backup.sql                     | SUCCESS  | 2026-04-05 10:50:05
+change               | insert.sql                     | SUCCESS  | 2026-04-05 10:50:05
+post-validation      | check_post_insert.sql          | SUCCESS  | 2026-04-05 10:50:05
+────────────────────────────────────────────────────────────────────────────
+ Overall result : ALL PHASES PASSED ✓
+ Completed at   : 2026-04-05 10:50:05
+════════════════════════════════════════════════════════════════════════════
